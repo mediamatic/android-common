@@ -16,47 +16,60 @@ import android.view.WindowManager;
  */
 public abstract class IkTagReaderActivity extends Activity implements IkTagReader.Callback {
 
-	private static final String TAG = "IkTagReaderActivity";
+    private static final String TAG = "IkTagReaderActivity";
 
-	private WakeLock mWakeLock;
+    private WakeLock mWakeLock;
 
-	private IkTagReader mReader;
+    private IkTagReader mReader;
 
-	/** Called when the activity is first created. */
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    /** Called when the activity is first created. */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mReader = new IkTagReader(this, this);
+    }
 
-		// Set up wake lock
-		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-		this.getWindow().addFlags(
-				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    @Override
+    public void onResume() {
+        super.onResume();
+        mReader.onResume();
+        if (mWakeLock != null) {
+            mWakeLock.acquire();
+        }
+    }
 
-		mReader = new IkTagReader(this, this);
-	}
+    @Override
+    public void onPause() {
+        super.onPause();
+        mReader.onPause();
+        if (mWakeLock != null) {
+            mWakeLock.release();
+        }
+    }
 
-	@Override
-	public void onResume() {
-		mReader.onResume();
-		super.onResume();
-		mWakeLock.acquire();
-	}
+    @Override
+    public void onNewIntent(Intent intent) {
+        mReader.onNewIntent(intent);
+    }
 
-	@Override
-	public void onPause() {
-		mWakeLock.release();
-		mReader.onPause();
-		super.onPause();
-	}
+    public void enableWakeLock() {
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+        mWakeLock.acquire();
+        this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
 
-	@Override
-	public void onNewIntent(Intent intent) {
-		mReader.onNewIntent(intent);
-	}
+    public void disableWakeLock() {
+        if (mWakeLock != null) {
+            mWakeLock.release();
+            mWakeLock = null;
+        }
+        this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
 
-	public String getReaderId() {
-		return mReader.getReaderId();
-	}
+
+    public String getReaderId() {
+        return mReader.getReaderId();
+    }
 
 }
