@@ -53,9 +53,11 @@ public abstract class IkTagReaderActivity extends Activity implements IkTagReade
     }
 
     public void enableWakeLock() {
-        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-        mWakeLock.acquire();
+        if (mWakeLock == null) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+            mWakeLock.acquire();
+        }
         this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
